@@ -122,18 +122,22 @@ function toTitleCase(str) {
 function generateAmounts(rawDigits) {
     const base = rawDigits ? parseInt(rawDigits, 10) / 100 : 500;
     let raw = base * (1.65 + Math.random() * 0.75);
-
-    // Always above 950
     if (raw < 950) raw = 950 + Math.random() * 350;
 
-    // Round to nearest 50 — no broken numbers
-    const round50 = (n) => Math.round(n / 50) * 50;
-    const total = round50(raw);
-    const a1 = round50(total * (0.55 + Math.random() * 0.1));
-    const a2 = total - a1;
+    // Broken cents — odd numbers, never .00/.50/round
+    const ODD_CENTS = [7,13,17,19,23,27,29,31,37,39,41,43,47,53,57,59,61,63,67,69,71,73,77,79,81,83,87,89,91,93,97,99];
+    const pick = () => ODD_CENTS[Math.floor(Math.random() * ODD_CENTS.length)];
+
+    const intTotal = Math.floor(raw);
+    const a1Int = Math.floor(intTotal * (0.55 + Math.random() * 0.1));
+    const a2Int = intTotal - a1Int;
 
     const fmt = (n) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return { a1: fmt(a1), a2: fmt(a2), total: fmt(total) };
+    return {
+        a1:    fmt(a1Int    + pick() / 100),
+        a2:    fmt(a2Int    + pick() / 100),
+        total: fmt(intTotal + pick() / 100),
+    };
 }
 
 // ─── shared layout ────────────────────────────────────────────────────────────
@@ -519,6 +523,15 @@ function StepLoading({ onComplete }) {
 
 function StepResults({ formData, onClose, onRegisterPix }) {
     const amounts = useRef(generateAmounts(formData.valorDigits)).current;
+    const [expiry, setExpiry] = useState(48 * 3600);
+
+    useEffect(() => {
+        const id = setInterval(() => setExpiry(p => p > 0 ? p - 1 : 0), 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    const pad = (n) => String(n).padStart(2, "0");
+    const expiryStr = `${pad(Math.floor(expiry / 3600))}:${pad(Math.floor((expiry % 3600) / 60))}:${pad(expiry % 60)}`;
 
     return (
         <ModalCard>
@@ -566,8 +579,8 @@ function StepResults({ formData, onClose, onRegisterPix }) {
                 >
                     💳 CADASTRAR CHAVE PIX E SACAR
                 </button>
-                <p className="text-center text-xs text-yellow-500 mb-3">
-                    ⚠ Valores expiram em 48h — Solicite agora
+                <p className="text-center text-xs text-yellow-500 mb-3 font-mono tabular-nums">
+                    ⚠ Valores expiram em <span className="font-bold">{expiryStr}</span> — Solicite agora
                 </p>
 
                 <div className="rounded-2xl p-3 mb-3 text-center" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
@@ -594,7 +607,9 @@ function StepResults({ formData, onClose, onRegisterPix }) {
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="font-bold text-sm text-[#00FF66]" style={{ filter: "blur(2.5px)" }}>R$ {amount}</span>
-                                <span className="text-[10px] text-red-400 font-bold flex-shrink-0 ml-2">VENCE EM 48H</span>
+                                <span className="text-[10px] text-red-400 font-bold flex-shrink-0 ml-2 font-mono tabular-nums">
+                                    VENCE EM {expiryStr}
+                                </span>
                             </div>
                         </div>
                     </div>
