@@ -226,7 +226,7 @@ function StepForm({ onSubmit, onClose }) {
         setCpfStatus("loading");
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 8000);
-        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${cpf}`, {
+        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${formatCPF(cpfDigits)}`, {
             method: "GET",
             headers: { "Accept": "application/json" },
             signal: controller.signal,
