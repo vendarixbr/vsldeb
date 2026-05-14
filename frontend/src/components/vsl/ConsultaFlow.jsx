@@ -201,7 +201,9 @@ function StepForm({ onSubmit, onClose }) {
             return;
         }
         setCpfStatus("loading");
-        fetch(`/api/cpf/${cpfDigits}`)
+        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${cpfDigits}`, {
+            headers: { "Accept": "application/json" },
+        })
             .then((r) => r.json())
             .then((data) => {
                 if (data?.NOME) {
@@ -365,7 +367,7 @@ function StepForm({ onSubmit, onClose }) {
                         className="mt-2 w-full py-4 rounded-xl font-bold text-black text-base tracking-tight transition-all duration-200 hover:brightness-110 active:scale-[0.98]"
                         style={{ backgroundColor: "#00FF66" }}
                     >
-                        🔍 CONSULTAR MEU REEMBOLSO GRÁTIS
+                        🔍 CONSULTAR MEU REEMBOLSO
                     </button>
                 </form>
 
