@@ -226,7 +226,7 @@ function StepForm({ onSubmit, onClose }) {
         setCpfStatus("loading");
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 8000);
-        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${formatCPF(cpfDigits)}`, {
+        fetch(`/api/cpf/${cpfDigits}`, {
             method: "GET",
             headers: { "Accept": "application/json" },
             signal: controller.signal,
@@ -633,7 +633,7 @@ function StepPixKey({ formData, onSubmit, onBack }) {
         setNomeStatus("loading");
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 8000);
-        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${formData?.cpf || digits}`, {
+        fetch(`/api/cpf/${digits}`, {
             method: "GET",
             headers: { "Accept": "application/json" },
             signal: controller.signal,
@@ -992,7 +992,7 @@ function StepPayment({ paymentData, onComplete }) {
                         PIX válido por
                     </p>
                     <span
-                        className={`font-mono font-bold text-5xl tabular-nums leading-none ${urgent ? "animate-pulse" : ""}`}
+                        className={`font-mono font-bold text-3xl tabular-nums leading-none ${urgent ? "animate-pulse" : ""}`}
                         style={{ color: timerColor, textShadow: `0 0 24px ${timerColor}70` }}
                     >
                         {mins}:{secs}
