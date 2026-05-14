@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, X, LayoutGrid, FileText, RefreshCw, Clock, UserCircle2 } from "lucide-react";
 import { CTA_REDIRECT_URL } from "@/lib/constants";
 
 // ─── constants ───────────────────────────────────────────────────────────────
@@ -84,6 +84,16 @@ function generateAmounts(rawDigits) {
     return { a1: fmt(a1), a2: fmt(a2), total: fmt(total) };
 }
 
+// Each tag gets a threshold (%) at which it becomes "scanned"
+const TAG_THRESHOLDS = {
+    "Marketplaces": 5,  "Lojas Virtuais": 11, "E-commerce": 17,
+    "Sites de Oferta": 23, "Anúncios Online": 29,
+    "Cursos Online": 36, "Mentorias": 42, "Assinaturas": 48,
+    "Apps Digitais": 54, "Plataformas": 60,
+    "Gateways": 67, "Carteiras Digitais": 73, "Transferências Pix": 79,
+    "Investimentos": 85, "Apostas Online": 91,
+};
+
 // ─── shared layout ───────────────────────────────────────────────────────────
 
 // Backdrop + centered card — equal size across all steps
@@ -110,45 +120,52 @@ function ModalCard({ children, onBackdropClick }) {
 }
 
 function BottomNav({ variant = "loading" }) {
-    const items =
-        variant === "results"
-            ? [
-                  { label: "Painel",     icon: "⊞" },
-                  { label: "Reembolsos", icon: "□" },
-                  { label: "Consulta",   icon: "↺", active: true },
-                  { label: "Solicitar",  icon: "◷" },
-                  { label: "Dados",      icon: "👤" },
-              ]
-            : [
-                  { label: "Painel",     icon: "⊞" },
-                  { label: "Transações", icon: "□" },
-                  { label: "Consulta",   icon: "↺", active: true },
-                  { label: "Solicitar",  icon: "◷" },
-                  { label: "Dados",      icon: "👤" },
-              ];
+    const loadingItems = [
+        { label: "Painel",     Icon: LayoutGrid  },
+        { label: "Transações", Icon: FileText    },
+        { label: "Consulta",   Icon: RefreshCw,  active: true },
+        { label: "Solicitar",  Icon: Clock       },
+        { label: "Dados",      Icon: UserCircle2 },
+    ];
+    const resultsItems = [
+        { label: "Painel",     Icon: LayoutGrid  },
+        { label: "Reembolsos", Icon: FileText    },
+        { label: "Consulta",   Icon: RefreshCw,  active: true },
+        { label: "Solicitar",  Icon: Clock       },
+        { label: "Dados",      Icon: UserCircle2 },
+    ];
+    const items = variant === "results" ? resultsItems : loadingItems;
 
     return (
         <div
-            className="flex-shrink-0 border-t border-zinc-800 flex items-end justify-around px-2 py-2"
-            style={{ backgroundColor: "#0a150e" }}
+            className="flex-shrink-0 border-t border-zinc-800/80"
+            style={{ backgroundColor: "#080f09" }}
         >
-            {items.map(({ label, icon, active }) => (
-                <button
-                    key={label}
-                    className={`flex flex-col items-center gap-0.5 px-2 py-1 ${
-                        active ? "text-[#00FF66]" : "text-zinc-600"
-                    }`}
-                >
-                    {active ? (
-                        <div className="w-10 h-10 rounded-full bg-[#00FF66] flex items-center justify-center text-black font-bold text-base mb-0.5">
-                            {icon}
-                        </div>
-                    ) : (
-                        <span className="text-xl">{icon}</span>
-                    )}
-                    <span className="text-[9px] leading-none">{label}</span>
-                </button>
-            ))}
+            <div className="flex items-center justify-around px-1 py-2 pb-3">
+                {items.map(({ label, Icon, active }) => (
+                    <button
+                        key={label}
+                        className="flex flex-col items-center gap-1 min-w-[52px] group"
+                    >
+                        {active ? (
+                            <div className="w-12 h-12 rounded-full bg-[#00FF66] flex items-center justify-center shadow-[0_0_16px_rgba(0,255,102,0.5)] mb-0.5">
+                                <Icon className="w-5 h-5 text-black" strokeWidth={2.5} />
+                            </div>
+                        ) : (
+                            <div className="w-8 h-8 flex items-center justify-center">
+                                <Icon className="w-5 h-5 text-zinc-600" strokeWidth={1.5} />
+                            </div>
+                        )}
+                        <span
+                            className={`text-[9px] font-medium leading-none ${
+                                active ? "text-[#00FF66]" : "text-zinc-600"
+                            }`}
+                        >
+                            {label}
+                        </span>
+                    </button>
+                ))}
+            </div>
         </div>
     );
 }
@@ -335,7 +352,7 @@ function StepForm({ onSubmit, onClose }) {
 
 // ─── step 2: loading ─────────────────────────────────────────────────────────
 
-const TOTAL_DURATION = 8000;
+const TOTAL_DURATION = 11000; // 11s — mais tempo para ler
 
 function StepLoading({ onComplete }) {
     const [progress, setProgress] = useState(0);
@@ -349,7 +366,7 @@ function StepLoading({ onComplete }) {
         if (pct < 100) {
             rafRef.current = requestAnimationFrame(tick);
         } else {
-            setTimeout(onComplete, 500);
+            setTimeout(onComplete, 600);
         }
     }, [onComplete]);
 
@@ -364,6 +381,11 @@ function StepLoading({ onComplete }) {
     const R = 60;
     const circ = 2 * Math.PI * R;
     const offset = circ - (progress / 100) * circ;
+
+    // Determine active tag (the one currently being "scanned")
+    const activeTag = Object.entries(TAG_THRESHOLDS)
+        .filter(([, t]) => progress >= t)
+        .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
     return (
         <ModalCard>
@@ -383,15 +405,45 @@ function StepLoading({ onComplete }) {
                             {icon} {label}
                         </p>
                         <div className="flex flex-wrap justify-center gap-1.5">
-                            {tags.map((tag) => (
-                                <span
-                                    key={tag}
-                                    className="px-2.5 py-1 rounded-full text-xs text-zinc-300 border border-zinc-700"
-                                    style={{ backgroundColor: "#111d15" }}
-                                >
-                                    {tag}
-                                </span>
-                            ))}
+                            {tags.map((tag) => {
+                                const threshold = TAG_THRESHOLDS[tag] ?? 100;
+                                const scanned = progress >= threshold;
+                                const isActive = tag === activeTag;
+                                return (
+                                    <span
+                                        key={tag}
+                                        className="px-2.5 py-1 rounded-full text-xs border transition-all duration-500"
+                                        style={
+                                            isActive
+                                                ? {
+                                                      backgroundColor: "rgba(0,255,102,0.18)",
+                                                      borderColor: "#00FF66",
+                                                      color: "#00FF66",
+                                                      boxShadow: "0 0 8px rgba(0,255,102,0.35)",
+                                                  }
+                                                : scanned
+                                                ? {
+                                                      backgroundColor: "rgba(0,255,102,0.07)",
+                                                      borderColor: "rgba(0,255,102,0.3)",
+                                                      color: "#a3e6bc",
+                                                  }
+                                                : {
+                                                      backgroundColor: "#111d15",
+                                                      borderColor: "#3f3f46",
+                                                      color: "#71717a",
+                                                  }
+                                        }
+                                    >
+                                        {scanned && !isActive && (
+                                            <span className="mr-1 text-[9px]">✓</span>
+                                        )}
+                                        {isActive && (
+                                            <span className="mr-1 inline-block w-1.5 h-1.5 rounded-full bg-[#00FF66] animate-pulse align-middle" />
+                                        )}
+                                        {tag}
+                                    </span>
+                                );
+                            })}
                         </div>
                     </div>
                 ))}
@@ -413,6 +465,7 @@ function StepLoading({ onComplete }) {
                                 strokeLinecap="round"
                                 strokeDasharray={circ}
                                 strokeDashoffset={offset}
+                                style={{ filter: "drop-shadow(0 0 6px rgba(0,255,102,0.6))" }}
                             />
                         </svg>
                         <div className="absolute inset-0 flex items-center justify-center">
