@@ -56,7 +56,7 @@ export default function Testimonials() {
             {/* ReclameAQUI badge */}
             <div className="flex justify-center mb-10">
                 <div
-                    className="inline-flex items-center gap-4 px-5 py-3 rounded-2xl"
+                    className="inline-flex items-center gap-3 px-4 py-2 rounded-xl"
                     style={{ backgroundColor: "#0d1a10", border: "1px solid #1e3a26" }}
                 >
                     {/* Logo text */}

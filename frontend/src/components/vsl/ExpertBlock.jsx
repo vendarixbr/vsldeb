@@ -1,36 +1,45 @@
 export default function ExpertBlock() {
     const stats = [
-        { value: "+12", label: "Anos de atuação" },
-        { value: "+3.400", label: "Casos resolvidos" },
-        { value: "100%", label: "Fraude Digital" },
+        { value: "+12",    label: "ANOS DE\nATUAÇÃO" },
+        { value: "+3.400", label: "CASOS\nRESOLVIDOS" },
+        { value: "100%",   label: "FRAUDE\nDIGITAL" },
     ];
 
     return (
         <div className="rp-fade-in w-full max-w-2xl mx-auto mt-6">
             <div
-                className="rounded-2xl overflow-hidden flex flex-col sm:flex-row items-center sm:items-stretch gap-0"
+                className="rounded-2xl overflow-hidden flex flex-col"
                 style={{ backgroundColor: "#0d1a10", border: "1px solid #1e3a26" }}
             >
-                {/* Photo */}
-                <div className="flex-shrink-0 flex items-end justify-center w-full sm:w-44 pt-6 sm:pt-0 px-6 sm:px-0">
+                {/* Photo — large, with gradient fade at bottom */}
+                <div className="relative w-full flex justify-center" style={{ minHeight: "300px" }}>
                     <img
                         src="/expert.png"
                         alt="Dr. Ricardo Alves"
-                        className="w-40 sm:w-44 object-contain object-bottom"
-                        style={{ maxHeight: "260px" }}
+                        className="w-full max-w-xs sm:max-w-sm object-contain object-bottom"
+                        style={{ height: "320px" }}
                         loading="lazy"
+                    />
+                    {/* Smooth fade so photo blends into card */}
+                    <div
+                        className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
+                        style={{
+                            background: "linear-gradient(to top, #0d1a10 30%, transparent)",
+                        }}
                     />
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 p-5 sm:p-6 flex flex-col justify-center">
-                    {/* Badge */}
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase text-[#00FF66] border border-[#00FF66]/30 bg-[#00FF66]/5 mb-3 w-fit">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00FF66] animate-pulse" />
-                        Especialista em Direito Digital
-                    </span>
+                <div className="px-6 pb-6 -mt-2 flex flex-col">
+                    {/* Badge row */}
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-5 h-px bg-[#00FF66]" />
+                        <span className="text-[10px] font-bold tracking-[0.18em] text-[#00FF66] uppercase">
+                            Especialista em Direito Digital
+                        </span>
+                    </div>
 
-                    <h3 className="font-display text-white text-xl font-bold leading-tight mb-0.5">
+                    <h3 className="font-display text-white text-2xl font-bold leading-tight mb-0.5">
                         Dr. Ricardo Alves
                     </h3>
                     <p className="text-zinc-500 text-xs mb-4">
@@ -41,14 +50,17 @@ export default function ExpertBlock() {
                         "Após anos atuando em casos de fraude online, criamos o RecuperaPix para que qualquer brasileiro possa acessar seus direitos de reembolso de forma simples, rápida e sem burocracia. Seu dinheiro tem dono — e ele é você."
                     </blockquote>
 
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
-                        {stats.map(({ value, label }) => (
-                            <div key={label} className="flex flex-col">
-                                <span className="text-[#00FF66] font-display font-bold text-lg leading-tight">
+                    {/* Stats — centralizados e distribuídos */}
+                    <div className="flex items-center justify-around pt-4 border-t border-zinc-800/60">
+                        {stats.map(({ value, label }, i) => (
+                            <div key={i} className="flex flex-col items-center text-center">
+                                <span className="text-[#00FF66] font-display font-bold text-2xl leading-none mb-1">
                                     {value}
                                 </span>
-                                <span className="text-zinc-500 text-[10px] leading-tight">
+                                <span
+                                    className="text-zinc-500 text-[9px] font-semibold tracking-wider uppercase leading-tight text-center"
+                                    style={{ whiteSpace: "pre-line" }}
+                                >
                                     {label}
                                 </span>
                             </div>
