@@ -107,13 +107,18 @@ function toTitleCase(str) {
 
 function generateAmounts(rawDigits) {
     const base = rawDigits ? parseInt(rawDigits, 10) / 100 : 500;
-    const multiplier = 1.65 + Math.random() * 0.75;
-    const total = base * multiplier;
-    const split = 0.55 + Math.random() * 0.1;
-    const a1 = total * split;
+    let raw = base * (1.65 + Math.random() * 0.75);
+
+    // Always above 950
+    if (raw < 950) raw = 950 + Math.random() * 350;
+
+    // Round to nearest 50 — no broken numbers
+    const round50 = (n) => Math.round(n / 50) * 50;
+    const total = round50(raw);
+    const a1 = round50(total * (0.55 + Math.random() * 0.1));
     const a2 = total - a1;
-    const fmt = (n) =>
-        n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const fmt = (n) => n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     return { a1: fmt(a1), a2: fmt(a2), total: fmt(total) };
 }
 
@@ -122,16 +127,15 @@ function generateAmounts(rawDigits) {
 function ModalCard({ children, onBackdropClick }) {
     return (
         <div
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[60] flex sm:items-center sm:justify-center sm:p-4"
             style={{ backgroundColor: "rgba(0,0,0,0.88)", backdropFilter: "blur(6px)" }}
             onClick={onBackdropClick}
         >
             <div
-                className="relative w-full max-w-md flex flex-col rounded-2xl overflow-hidden"
+                className="relative w-full h-full sm:h-auto sm:max-w-md sm:max-h-[90vh] flex flex-col sm:rounded-2xl overflow-hidden"
                 style={{
                     backgroundColor: "#0a150e",
                     border: "1px solid #1e3a26",
-                    maxHeight: "90vh",
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
@@ -524,6 +528,18 @@ function StepResults({ formData, onClose, onRegisterPix }) {
                     </div>
                 </div>
 
+                {/* CTA — acima dos itens para visibilidade imediata */}
+                <button
+                    onClick={onRegisterPix}
+                    className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-bold text-black text-sm tracking-tight transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-[0_0_24px_rgba(0,255,102,0.3)] mb-1"
+                    style={{ backgroundColor: "#00FF66" }}
+                >
+                    💳 CADASTRAR CHAVE PIX E SACAR
+                </button>
+                <p className="text-center text-xs text-yellow-500 mb-3">
+                    ⚠ Valores expiram em 48h — Solicite agora
+                </p>
+
                 <div className="rounded-2xl p-3 mb-3 text-center" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
                     <p className="text-white font-semibold text-xs mb-1">🔒 Empresas ocultas por segurança</p>
                     <p className="text-zinc-500 text-xs leading-relaxed">
@@ -554,21 +570,10 @@ function StepResults({ formData, onClose, onRegisterPix }) {
                     </div>
                 ))}
 
-                <div className="rounded-2xl p-3 mb-4 flex items-center justify-between" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
+                <div className="rounded-2xl p-3 mt-1 flex items-center justify-between" style={{ backgroundColor: "#0d1f12", border: "1px solid #1e3a26" }}>
                     <span className="text-white text-sm font-semibold">Total disponível</span>
                     <span className="font-bold text-white text-sm" style={{ filter: "blur(2.5px)" }}>R$ {amounts.total}</span>
                 </div>
-
-                <button
-                    onClick={onRegisterPix}
-                    className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-bold text-black text-sm tracking-tight transition-all duration-200 hover:brightness-110 active:scale-[0.98] shadow-[0_0_24px_rgba(0,255,102,0.3)]"
-                    style={{ backgroundColor: "#00FF66" }}
-                >
-                    💳 CADASTRAR CHAVE PIX E SACAR
-                </button>
-                <p className="text-center text-xs text-yellow-500 mt-2 mb-1">
-                    ⚠ Valores expiram em 48h — Solicite agora
-                </p>
             </div>
 
             <BottomNav activeIndex={1} />
