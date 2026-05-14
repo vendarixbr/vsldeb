@@ -51,10 +51,10 @@ export default function Testimonials() {
     return (
         <section
             data-testid="vsl-testimonials"
-            className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20"
+            className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-16 sm:pb-20"
         >
             {/* ReclameAQUI badge */}
-            <div className="flex justify-center mb-10">
+            <div className="flex justify-center mb-6">
                 <div
                     className="inline-flex items-center gap-3 px-4 py-2 rounded-xl"
                     style={{ backgroundColor: "#0d1a10", border: "1px solid #1e3a26" }}
@@ -77,7 +77,7 @@ export default function Testimonials() {
                 </div>
             </div>
 
-            <div className="text-center mb-12">
+            <div className="text-center mb-8">
                 <p className="text-xs tracking-[0.3em] uppercase text-[#00FF66] font-semibold mb-3">
                     Depoimentos verificados
                 </p>
