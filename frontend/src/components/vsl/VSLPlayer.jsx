@@ -190,28 +190,26 @@ export default function VSLPlayer({ onProgress }) {
                         </button>
                     )}
 
-                    {/* Selo "ao vivo" */}
+                    {/* Indicador ao vivo — só o dot */}
                     {hasStarted && (
-                        <div className="absolute top-3 left-3 z-20 flex items-center gap-2 px-2.5 py-1 rounded-md bg-black/60 backdrop-blur-md border border-[#00FF66]/30 pointer-events-none">
+                        <div className="absolute top-3 left-3 z-20 flex items-center justify-center w-6 h-6 rounded-full bg-black/50 backdrop-blur-md border border-[#00FF66]/20 pointer-events-none">
                             <span className="relative flex h-2 w-2">
                                 <span className="absolute inline-flex h-full w-full rounded-full bg-[#00FF66] opacity-75 animate-ping" />
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FF66]" />
                             </span>
-                            <span className="text-[10px] uppercase tracking-widest text-white/80">
-                                RecuperaPix · VSL
-                            </span>
                         </div>
                     )}
 
-                    {/* Botão mute toggle */}
+                    {/* Botão mute — ícone minimalista */}
                     {hasStarted && (
                         <button
                             type="button"
                             onClick={toggleMute}
                             data-testid="vsl-mute-toggle"
-                            className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-white text-xs hover:border-[#00FF66]/40 transition"
+                            className="absolute bottom-3 right-3 z-20 w-8 h-8 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-base hover:border-[#00FF66]/40 transition"
+                            aria-label={muted ? "Ativar som" : "Desativar som"}
                         >
-                            {muted ? "🔇 Som desativado" : "🔊 Som ativo"}
+                            {muted ? "🔇" : "🔊"}
                         </button>
                     )}
 

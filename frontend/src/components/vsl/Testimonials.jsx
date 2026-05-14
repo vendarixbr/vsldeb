@@ -3,7 +3,7 @@ import { Star, BadgeCheck } from "lucide-react";
 const AVATARS = [
     "https://images.unsplash.com/photo-1764545973653-94c40d993495?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwyfHxwcm9mZXNzaW9uYWwlMjBhdmF0YXIlMjBwb3J0cmFpdCUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3ODYxOTc2OHww&ixlib=rb-4.1.0&q=85",
     "https://images.unsplash.com/photo-1762291629616-3e2c044c79a0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwzfHxwcm9mZXNzaW9uYWwlMjBhdmF0YXIlMjBwb3J0cmFpdCUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3ODYxOTc2OHww&ixlib=rb-4.1.0&q=85",
-    "https://images.unsplash.com/photo-1764546373114-2d7a87221733?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBhdmF0YXIlMjBwb3J0cmFpdCUyMGRhcmslMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc3ODYxOTc2OHww&ixlib=rb-4.1.0&q=85",
+    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?crop=entropy&cs=srgb&fm=jpg&q=85&w=400",
 ];
 
 const testimonials = [
@@ -12,7 +12,7 @@ const testimonials = [
         city: "São Paulo · SP",
         avatar: AVATARS[0],
         amount: "R$ 4.380",
-        text: "Caí num golpe de PIX falso me passando por uma loja conhecida. Achei que tinha perdido tudo. Em poucos dias seguindo o passo a passo, consegui acionar o banco e recuperei o valor integral. Mudou totalmente minha visão sobre como agir nessas situações.",
+        text: "Eu achei que tinha perdido tudo. Caí em um golpe via PIX e fiquei completamente desesperado, porque o banco praticamente não ajudou em nada. Encontrei a RecuperaPix e resolvi fazer a análise. O atendimento foi rápido, explicaram tudo de forma simples e consegui entender que existiam possibilidades que eu nem imaginava. Só de não ter desistido já valeu a pena.",
         when: "há 2 semanas",
     },
     {
@@ -20,7 +20,7 @@ const testimonials = [
         city: "Belo Horizonte · MG",
         avatar: AVATARS[1],
         amount: "R$ 1.920",
-        text: "Transferi para a chave errada e o destinatário se recusou a devolver. Pensei que ia perder. A orientação foi rápida, clara e me ajudou a abrir o MED corretamente. Recebi de volta em 11 dias. Recomendo demais.",
+        text: "Há 2 meses eu caí em um golpe comprando em um site falso e achei que tinha perdido meu dinheiro de vez. Conheci a RecuperaPix e resolvi fazer a análise. Depois da liberação, o dinheiro caiu na minha conta em menos de 1 hora.",
         when: "há 1 mês",
     },
     {
@@ -28,7 +28,7 @@ const testimonials = [
         city: "Recife · PE",
         avatar: AVATARS[2],
         amount: "R$ 9.700",
-        text: "Sofri um golpe sofisticado de falso boleto via PIX. Já estava conformado em perder o dinheiro. Com o suporte da equipe, entrei com a reclamação no banco e no Bacen — e o valor caiu na conta. Atendimento sério e humano.",
+        text: "Eu caí em uma promessa falsa de investimento pela internet e acabei transferindo um valor achando que era uma oportunidade real. Depois descobri que era golpe e fiquei sem saber o que fazer. Conheci a RecuperaPix através de um anúncio e resolvi tentar a análise. O processo foi muito simples e o atendimento passou bastante confiança. Depois da liberação consegui recuperar o valor muito mais rápido do que imaginava. Recomendo demais pra quem passou por isso também.",
         when: "há 3 semanas",
     },
 ];

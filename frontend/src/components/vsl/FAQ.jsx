@@ -8,15 +8,15 @@ import {
 const faqs = [
     {
         q: "Isso funciona mesmo?",
-        a: "Sim. A recuperação de valores via PIX é prevista pelo Banco Central por meio do Mecanismo Especial de Devolução (MED) e por outros instrumentos jurídicos. Nossa metodologia organiza essas etapas e orienta cada usuário a agir rapidamente, com base em mais de 47 mil atendimentos realizados.",
+        a: "A RecuperaPix realiza análises relacionadas a fraudes digitais e verifica reembolsos disponíveis. Após a verificação, o estágio final é cadastrar sua chave PIX e receber os valores em até 24 horas.",
     },
     {
         q: "Quanto tempo demora?",
-        a: "Os primeiros movimentos podem acontecer em até 24 horas. A devolução, quando ocorre, geralmente é concluída entre 7 e 30 dias úteis, dependendo da resposta do banco e da complexidade do caso.",
+        a: "Em até 24 horas após a solicitação em nosso painel!",
     },
     {
         q: "Posso consultar gratuitamente?",
-        a: "Sim. A consulta inicial é 100% gratuita. Após avaliar o seu caso, mostramos com total transparência qual é o melhor caminho — antes de qualquer compromisso financeiro.",
+        a: "Sim. A consulta inicial é 100% gratuita. Após a análise, você cadastra sua chave PIX e prossegue para a parte final da recuperação.",
     },
     {
         q: "O processo é seguro?",

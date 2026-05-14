@@ -49,7 +49,7 @@ export default function Hero() {
                     >
                         golpes online
                     </span>{" "}
-                    antes que seja tarde.
+                    agora mesmo.
                 </h1>
 
                 {/* VSL Player — mobile: logo após o H1 | desktop: após os bullets */}
@@ -66,10 +66,13 @@ export default function Hero() {
                     className="rp-fade-in mt-6 text-center text-zinc-400 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed order-4 sm:order-3"
                     style={{ animationDelay: "0.15s" }}
                 >
-                    Descubra como milhares de brasileiros estão conseguindo agir
-                    rapidamente após fraudes via PIX, golpes digitais e
-                    transações indevidas — usando os mecanismos oficiais do
-                    Banco Central.
+                    Descubra como milhares de brasileiros estão conseguindo recuperar o dinheiro perdido após fraudes via PIX, golpes digitais e transações indevidas — usando os mecanismos oficiais do Banco Central.
+                    <span className="flex items-center justify-center gap-2 mt-3">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00FF66]/10 border border-[#00FF66]/25 text-sm">
+                            <span className="text-[#00FF66] font-bold">+47 mil</span>
+                            <span className="text-zinc-400">pessoas que recuperaram valores com a RecuperaPix</span>
+                        </span>
+                    </span>
                 </p>
 
                 {/* Bullets */}
