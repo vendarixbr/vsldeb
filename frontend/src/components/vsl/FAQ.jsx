@@ -12,7 +12,7 @@ const faqs = [
     },
     {
         q: "Quanto tempo demora?",
-        a: "Em até 24 horas após a solicitação em nosso painel!",
+        a: "A análise é feita em até 60 segundos, após encontrar reembolsos disponíveis cruzando os dados, você recebe o valor de volta em até 24 horas.",
     },
     {
         q: "Posso consultar gratuitamente?",

@@ -67,12 +67,6 @@ export default function Hero() {
                     style={{ animationDelay: "0.15s" }}
                 >
                     Descubra como milhares de brasileiros estão conseguindo recuperar o dinheiro perdido após fraudes via PIX, golpes digitais e transações indevidas — usando os mecanismos oficiais do Banco Central.
-                    <span className="flex items-center justify-center gap-2 mt-3">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#00FF66]/10 border border-[#00FF66]/25 text-sm">
-                            <span className="text-[#00FF66] font-bold">+47 mil</span>
-                            <span className="text-zinc-400">pessoas que recuperaram valores com a RecuperaPix</span>
-                        </span>
-                    </span>
                 </p>
 
                 {/* Bullets */}

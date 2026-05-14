@@ -82,13 +82,8 @@ export default function Testimonials() {
                     Depoimentos verificados
                 </p>
                 <h2 className="font-display text-3xl sm:text-4xl text-white font-medium tracking-tight">
-                    Histórias reais de quem conseguiu recuperar.
+                    <span className="text-[#00FF66]">47 mil</span> pessoas que recuperaram valores com a RecuperaPix.
                 </h2>
-                <p className="mt-3 text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto">
-                    Nota média{" "}
-                    <span className="text-white font-semibold">4.9 / 5</span>{" "}
-                    em mais de 12.300 avaliações públicas.
-                </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">

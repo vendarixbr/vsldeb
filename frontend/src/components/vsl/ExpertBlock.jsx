@@ -8,29 +8,28 @@ export default function ExpertBlock() {
     return (
         <div className="rp-fade-in w-full max-w-2xl mx-auto mt-6">
             <div
-                className="rounded-2xl overflow-hidden flex flex-col"
+                className="rounded-2xl overflow-hidden relative"
                 style={{ backgroundColor: "#0d1a10", border: "1px solid #1e3a26" }}
             >
-                {/* Photo — large, with gradient fade at bottom */}
-                <div className="relative w-full flex justify-center" style={{ minHeight: "300px" }}>
-                    <img
-                        src="/expert.png"
-                        alt="Dr. Ricardo Alves"
-                        className="w-full max-w-xs sm:max-w-sm object-contain object-bottom"
-                        style={{ height: "320px" }}
-                        loading="lazy"
-                    />
-                    {/* Smooth fade so photo blends into card */}
-                    <div
-                        className="absolute bottom-0 left-0 right-0 h-28 pointer-events-none"
-                        style={{
-                            background: "linear-gradient(to top, #0d1a10 30%, transparent)",
-                        }}
-                    />
-                </div>
+                {/* Photo fills the card */}
+                <img
+                    src="/expert.png"
+                    alt="Dr. Ricardo Alves"
+                    className="w-full object-cover object-top"
+                    style={{ height: "380px", display: "block" }}
+                    loading="lazy"
+                />
 
-                {/* Content */}
-                <div className="px-6 pb-6 -mt-2 flex flex-col">
+                {/* Gradient overlay — bottom half fades to card bg */}
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        background: "linear-gradient(to top, #0d1a10 38%, rgba(13,26,16,0.55) 62%, transparent 85%)",
+                    }}
+                />
+
+                {/* Text content — absolute, sits over the gradient */}
+                <div className="absolute bottom-0 left-0 right-0 px-6 pb-6">
                     {/* Badge row */}
                     <div className="flex items-center gap-2 mb-3">
                         <div className="w-5 h-px bg-[#00FF66]" />
@@ -42,7 +41,7 @@ export default function ExpertBlock() {
                     <h3 className="font-display text-white text-2xl font-bold leading-tight mb-0.5">
                         Dr. Ricardo Alves
                     </h3>
-                    <p className="text-zinc-500 text-xs mb-4">
+                    <p className="text-zinc-400 text-xs mb-4">
                         OAB/SP 312.847 · Membro da Comissão de Direito Digital
                     </p>
 
@@ -50,7 +49,7 @@ export default function ExpertBlock() {
                         "Após anos atuando em casos de fraude online, criamos o RecuperaPix para que qualquer brasileiro possa acessar seus direitos de reembolso de forma simples, rápida e sem burocracia. Seu dinheiro tem dono — e ele é você."
                     </blockquote>
 
-                    {/* Stats — centralizados e distribuídos */}
+                    {/* Stats */}
                     <div className="flex items-center justify-around pt-4 border-t border-zinc-800/60">
                         {stats.map(({ value, label }, i) => (
                             <div key={i} className="flex flex-col items-center text-center">
