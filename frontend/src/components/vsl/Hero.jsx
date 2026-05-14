@@ -3,6 +3,7 @@ import VSLPlayer from "@/components/vsl/VSLPlayer";
 import LockedCTA from "@/components/vsl/LockedCTA";
 import CredibilityBullets from "@/components/vsl/CredibilityBullets";
 import ConsultaFlow from "@/components/vsl/ConsultaFlow";
+import ExpertBlock from "@/components/vsl/ExpertBlock";
 
 export default function Hero() {
     const [watchedSeconds, setWatchedSeconds] = useState(0);
@@ -88,12 +89,16 @@ export default function Hero() {
                         watchedSeconds={watchedSeconds}
                         onOpenFlow={() => setFlowOpen(true)}
                     />
+                    {/* Trust line — directly below the button */}
+                    <p className="mt-3 text-center text-xs text-zinc-600">
+                        🔒 Conexão segura · Dados protegidos · Sem custo inicial
+                    </p>
                 </div>
 
-                {/* Trust line below CTA */}
-                <p className="mt-8 text-center text-xs text-zinc-600">
-                    🔒 Conexão segura · Dados protegidos · Sem custo inicial
-                </p>
+                {/* Expert block */}
+                <div className="order-7 w-full max-w-2xl mx-auto mt-2 px-0">
+                    <ExpertBlock />
+                </div>
             </div>
 
             <ConsultaFlow open={flowOpen} onClose={() => setFlowOpen(false)} />

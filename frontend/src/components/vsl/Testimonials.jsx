@@ -53,6 +53,30 @@ export default function Testimonials() {
             data-testid="vsl-testimonials"
             className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20"
         >
+            {/* ReclameAQUI badge */}
+            <div className="flex justify-center mb-10">
+                <div
+                    className="inline-flex items-center gap-4 px-5 py-3 rounded-2xl"
+                    style={{ backgroundColor: "#0d1a10", border: "1px solid #1e3a26" }}
+                >
+                    {/* Logo text */}
+                    <div className="flex items-center gap-0 font-black text-xl leading-none select-none" style={{ fontFamily: "Arial Black, Arial, sans-serif" }}>
+                        <span style={{ color: "#8dc63f" }}>Reclame</span>
+                        <span style={{ color: "#006633" }}>AQUI</span>
+                    </div>
+
+                    <div className="w-px h-8 bg-zinc-700" />
+
+                    {/* Info */}
+                    <div>
+                        <p className="text-[#00FF66] text-xs font-bold leading-tight">Parceiro Oficial</p>
+                        <p className="text-zinc-400 text-[11px] leading-tight mt-0.5">
+                            Empresa verificada · Nota 9.3/10 · Respondemos 100% das reclamações
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div className="text-center mb-12">
                 <p className="text-xs tracking-[0.3em] uppercase text-[#00FF66] font-semibold mb-3">
                     Depoimentos verificados
